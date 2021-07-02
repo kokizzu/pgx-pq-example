@@ -7,4 +7,5 @@ require (
 	github.com/joho/godotenv v1.3.0
 	github.com/kokizzu/gotro v1.625.1808
 	github.com/lib/pq v1.9.0
+	github.com/stretchr/testify v1.7.0
 )

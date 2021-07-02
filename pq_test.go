@@ -38,7 +38,6 @@ func TestPq(t *testing.T) {
 	conn.SetMaxOpenConns(1)
 	L.PanicIf(err, `cannot connect db`)
 	defer conn.Close()
-
 	_, err = conn.Exec(`CREATE TABLE IF NOT EXISTS bar1(id BIGSERIAL PRIMARY KEY, foo VARCHAR(10))`)
 	L.PanicIf(err, `failed create table bar1`)
 
@@ -47,16 +46,31 @@ func TestPq(t *testing.T) {
 
 	wg := sync.WaitGroup{}
 	const K = 1000
-	for z := 0; z < K; z++ {
-		wg.Add(1)
-		go func(z int) {
-			_, err = conn.Exec(`INSERT INTO bar1(foo)VALUES($1)`, I.ToStr(z))
-			L.PanicIf(err, `failed insert to bar1`)
-			wg.Done()
-		}(z)
-	}
 
-	wg.Wait()
+	t.Run(`insert`, func(t *testing.T) {
+		for z := 0; z < K; z++ {
+			wg.Add(1)
+			go func(z int) {
+				_, err = conn.Exec(`INSERT INTO bar1(foo)VALUES($1)`, I.ToStr(z))
+				L.PanicIf(err, `failed insert to bar1`)
+				wg.Done()
+			}(z)
+		}
+		wg.Wait()
+	})
+
+	t.Run(`update`, func(t *testing.T) {
+		for z := 0; z < K; z++ {
+			wg.Add(1)
+			go func(z int) {
+				_, err = conn.Exec(`UPDATE bar1 SET foo=$1 WHERE id=$2`, I.ToStr(100-z), z)
+				L.PanicIf(err, `failed update bar1`)
+				wg.Done()
+			}(z)
+		}
+		wg.Wait()
+	})
+
 	row := conn.QueryRow(`SELECT COUNT(1) FROM bar1`)
 	count := 0
 	err = row.Scan(&count)
