@@ -1,4 +1,4 @@
-module pgx_example
+module pgx_pq_example
 
 go 1.16
 
