@@ -1,6 +1,6 @@
 
 
-# PGX Example
+# PGX and PQ Example
 
 ```
 
@@ -11,7 +11,11 @@ docker-compose up
 go mod tidy
 
 time go run main.go
-1000
 
-CPU: 0.64s      Real: 3.51s     RAM: 94016KB
+1000
+PQ 3.162459197s
+1000
+PGX 832.63568ms
+
+CPU: 0.73s      Real: 4.34s     RAM: 97524KB
 ```
