@@ -18,12 +18,13 @@ import (
 )
 
 func TestPq(t *testing.T) {
+	requirePostgresIntegration(t)
+
 	start := time.Now()
 	defer func() {
 		fmt.Println(`PQ`, time.Since(start))
 	}()
-	err := godotenv.Load()
-	L.PanicIf(err, `failed load .env`)
+	_ = godotenv.Load()
 
 	pgCfg := fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
@@ -63,7 +64,7 @@ func TestPq(t *testing.T) {
 		for z := 0; z < K; z++ {
 			wg.Add(1)
 			go func(z int) {
-				_, err = conn.Exec(`UPDATE bar1 SET foo=$1 WHERE id=$2`, I.ToStr(100-z), z)
+				_, err = conn.Exec(`UPDATE bar1 SET foo=$1 WHERE id=$2`, I.ToStr(100-z), z+1)
 				L.PanicIf(err, `failed update bar1`)
 				wg.Done()
 			}(z)

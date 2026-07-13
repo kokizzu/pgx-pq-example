@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/kokizzu/gotro/I"
@@ -18,12 +18,13 @@ import (
 )
 
 func TestPgx(t *testing.T) {
+	requirePostgresIntegration(t)
+
 	start := time.Now()
 	defer func() {
 		fmt.Println(`PGX`, time.Since(start))
 	}()
-	err := godotenv.Load()
-	L.PanicIf(err, `failed load .env`)
+	_ = godotenv.Load()
 
 	bg := context.Background() // shared context
 	pgUrl := "postgres://%s:%s@%s:%d/%s"
@@ -35,7 +36,7 @@ func TestPgx(t *testing.T) {
 		os.Getenv(`POSTGRES_DB`),
 	)
 
-	conn, err := pgxpool.Connect(bg, pgUrl)
+	conn, err := pgxpool.New(bg, pgUrl)
 	L.PanicIf(err, `cannot connect db`)
 	defer conn.Close()
 
@@ -64,7 +65,7 @@ func TestPgx(t *testing.T) {
 		for z := 0; z < K; z++ {
 			wg.Add(1)
 			go func(z int) {
-				_, err = conn.Exec(bg, `UPDATE bar1 SET foo=$1 WHERE id=$2`, I.ToStr(100-z), z)
+				_, err = conn.Exec(bg, `UPDATE bar1 SET foo=$1 WHERE id=$2`, I.ToStr(100-z), z+1)
 				L.PanicIf(err, `failed update bar1`)
 				wg.Done()
 			}(z)
